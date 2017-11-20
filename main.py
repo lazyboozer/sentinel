@@ -9,7 +9,10 @@ import shutil
 import string
 import random
 import math
+import logging
+import traceback
 
+from builtins import input
 from colorama import init
 from termcolor import colored
 from pynput import keyboard
@@ -23,6 +26,7 @@ def random_string(n):
     return ''.join(pool[rnd.randint(0, m)] for _ in range(n))
 
 def run_sentinel():
+    logger = logging.getLogger('sentinel')
     print(colored('Sentinel runs every 1 minute', 'green'))
 
     while True:
@@ -33,6 +37,10 @@ def run_sentinel():
             sentinel.entrypoint()
         except Exception as e:
             print(colored('Error: {}'.format(e), 'red'))
+
+            logger.error(str(e))
+            logger.error(traceback.format_exc())
+            logger.error('--------------------')
         
         time.sleep(60) # Wait for a minute
 
@@ -40,11 +48,11 @@ def fix_masternode(data_folder):
     wallet_file = os.path.join(data_folder, 'wallet.dat')
 
     if not os.path.isfile(wallet_file):
-        print('It seems like the data folder (the one containing wallet.data) is not the same as the folder where desire.conf is')
+        print('It seems like the data folder (the one containing wallet.dat) is not the same as the folder where desire.conf is')
         data_folder = input('Please, write the data folder path: ')
         return fix_masternode(data_folder)
 
-    print(colored('Make a copy of "wallet.data" and "desire.conf" before continuing.\nThis program will try it best not to touch them, but just in case!', attrs=['bold']))
+    print(colored('Make a copy of "wallet.dat" and "desire.conf" before continuing.\nThis program will try it best not to touch them, but just in case!', attrs=['bold']))
     confirm = input('Once done, press [ENTER], or write cancel + [ENTER] to exit\n')
     if confirm.lower() == "cancel":
         return
@@ -179,10 +187,18 @@ def menu():
 if __name__ == '__main__':
     init()
 
-    print(colored('Using desire.conf: {}'.format(config.desire_conf), 'green'))
+    # Setup logging
+    logger = logging.getLogger('sentinel')
+    hdlr = logging.FileHandler('sentinel.log')
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+    hdlr.setFormatter(formatter)
+    logger.addHandler(hdlr) 
+    logger.setLevel(logging.INFO)
 
-    try: input = raw_input
-    except NameError: pass
+    if os.path.isfile(config.sentinel_config_file):
+        print(colored('Using sentinel.conf: {}'.format(config.sentinel_config_file), 'green'))
+
+    print(colored('Using desire.conf: {}'.format(config.desire_conf), 'green'))
 
     option = menu()
     if option == 1: 
