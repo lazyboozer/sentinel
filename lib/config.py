@@ -26,6 +26,8 @@ def get_argarse():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', type=str, required=False)
     parser.add_argument('--rpc-port', type=int, required=False)
+    parser.add_argument('--repair', action='store_true', default=False, required=False)
+    parser.add_argument('--sentinel', action='store_true', default=False, required=False)
     return parser
 
 def get_args():
